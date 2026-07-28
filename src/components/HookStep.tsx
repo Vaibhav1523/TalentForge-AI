@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useEffect } from "react";
 
-const LETTERS = ["H", "o", "o", "k", "S", "t", "e", "p"];
+const LETTERS = ["T", "a", "l", "e", "n", "t", "F", "o", "r", "g", "e", " ", "A", "I"];
 
 export function HookStep() {
   const wrapRef = useRef<HTMLDivElement>(null);

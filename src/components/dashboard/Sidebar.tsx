@@ -37,7 +37,7 @@ export default function Sidebar() {
                             height={36}
                             decoding="async"
                         />
-                        HookStep
+                        TalentForge AI
                     </Link>
                 </div>
 

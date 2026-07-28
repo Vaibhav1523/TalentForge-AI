@@ -29,8 +29,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   themeColor: SITE_THEME_COLOR,
   title: {
-    default: "HookStep | Tech Talent Platform",
-    template: "%s | HookStep",
+    default: "TalentForge AI | Tech Talent Platform",
+    template: "%s | TalentForge AI",
   },
   description:
     "Connect top tech talent with world-class companies. AI/ML, Full Stack, Data Science, DevOps & QA - vetted professionals, hired fast.",
@@ -40,8 +40,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: BASE_URL,
-    siteName: "HookStep",
-    title: "HookStep | Tech Talent Platform",
+    siteName: "TalentForge AI",
+    title: "TalentForge AI | Tech Talent Platform",
     description:
       "Connect top tech talent with world-class companies. AI/ML, Full Stack, Data Science, DevOps & QA - vetted professionals, hired fast.",
     locale: "en_US",
@@ -50,19 +50,19 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "HookStep | Tech Talent Platform",
+        alt: "TalentForge AI | Tech Talent Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HookStep | Tech Talent Platform",
+    title: "TalentForge AI | Tech Talent Platform",
     description:
       "Connect top tech talent with world-class companies. AI/ML, Full Stack, Data Science, DevOps & QA - vetted professionals, hired fast.",
-    site: "@hookstep",
+    site: "@talentforgeai",
     images: ["/opengraph-image"],
   },
-  keywords: ["tech hiring", "software jobs", "remote jobs", "vetted talent", "HookStep"],
+  keywords: ["tech hiring", "software jobs", "remote jobs", "vetted talent", "TalentForge AI"],
   category: "technology",
   icons: {
     icon: [{ url: "/favicon.png", sizes: "48x48", type: "image/png" }],

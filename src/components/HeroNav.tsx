@@ -81,7 +81,7 @@ export function HeroNav() {
     <>
       <header className="hero-nav" id="heroNav" role="banner">
         <div className="hero-nav-inner">
-          <Link className="hn-brand" href="/" aria-label="Home">
+          <Link className="hn-brand" href="/" aria-label="TalentForge AI Home">
             <img
               className="hn-logo"
               src={SITE_LOGO_SRC}
@@ -90,6 +90,9 @@ export function HeroNav() {
               height={44}
               decoding="async"
             />
+            <span style={{ fontSize: "1.15rem", fontWeight: 800, letterSpacing: "-0.02em", color: "#ffffff" }}>
+              TalentForge<span style={{ color: "#38bdf8" }}> AI</span>
+            </span>
           </Link>
 
           <nav className="hn-links" aria-label="Main navigation">

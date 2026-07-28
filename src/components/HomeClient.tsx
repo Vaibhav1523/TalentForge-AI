@@ -93,7 +93,7 @@ const FALLBACK_TEAM: TeamMemberData[] = [
   {
     name: "Saraswati",
     role: "CEO",
-    bio: "Visionary CEO guiding HookStep's mission to connect world-class talent with AI-native companies.",
+    bio: "Visionary CEO guiding TalentForge AI's mission to connect world-class talent with AI-native companies.",
     avatarUrl: "/team/saraswati.png",
     iconName: "Brain",
     tilt: "tilt-left-1",
@@ -102,7 +102,7 @@ const FALLBACK_TEAM: TeamMemberData[] = [
   {
     name: "Mohan",
     role: "COO",
-    bio: "Operations leader scaling HookStep's hiring engine—process, partnerships, and delivery excellence.",
+    bio: "Operations leader scaling TalentForge AI's hiring engine—process, partnerships, and delivery excellence.",
     avatarUrl: "/team/mohan.png",
     iconName: "Briefcase",
     tilt: "tilt-center",
@@ -279,7 +279,7 @@ export function HomeClient({ teamMembers }: HomeClientProps) {
             <div className="msg">
               <div className="card">
                 <h2>Built for Scale</h2>
-                <p>Whether you&apos;re hiring one person or a hundred, HookStep adapts to your workflow seamlessly.</p>
+                <p>Whether you&apos;re hiring one person or a hundred, TalentForge AI adapts to your workflow seamlessly.</p>
               </div>
             </div>
 
@@ -340,11 +340,11 @@ export function HomeClient({ teamMembers }: HomeClientProps) {
             <section
               className={`team-showcase founders-showcase ${teamInView ? "is-active" : ""}`}
               id="team"
-              aria-label="Meet the founders behind HookStep"
+              aria-label="Meet the founders behind TalentForge AI"
               ref={teamRef}
             >
               <p className="team-showcase-eyebrow">Leadership</p>
-              <h2 className="team-showcase-title">Meet the founders behind HookStep</h2>
+              <h2 className="team-showcase-title">Meet the founders behind TalentForge AI</h2>
               <p className="team-showcase-sub">
                 The people shaping how companies discover and hire exceptional tech talent.
               </p>
@@ -477,7 +477,7 @@ export function HomeClient({ teamMembers }: HomeClientProps) {
             <div className="msg">
               <div className="card">
                 <h2>Ready to Transform Hiring?</h2>
-                <p>Join thousands of companies using HookStep to build exceptional teams.</p>
+                <p>Join thousands of companies using TalentForge AI to build exceptional teams.</p>
               </div>
             </div>
 
@@ -488,7 +488,7 @@ export function HomeClient({ teamMembers }: HomeClientProps) {
         <section className="after">
           <div className="card">
             <h2>The Future of Talent Acquisition</h2>
-            <p>HookStep combines AI-powered matching with a human-centered approach to help you hire faster and smarter.</p>
+            <p>TalentForge AI combines AI-powered matching with a human-centered approach to help you hire faster and smarter.</p>
           </div>
         </section>
 

@@ -10,19 +10,19 @@ export function getPublicSiteBaseUrl(): string {
   return "https://hookstep.in";
 }
 
-export const SITE_BRAND = "HookStep";
+export const SITE_BRAND = "TalentForge AI";
 
 /** Single-paragraph entity definition for LLMs, schema, and llms.txt. */
 export const SITE_ENTITY_SUMMARY =
-  "HookStep is a hiring platform at hookstep.in for software, data, and platform roles. Employers publish structured job listings and manage applications in one workspace; candidates browse public job pages and apply using one profile; pricing is employer-paid while job seekers use core apply flows without a platform fee.";
+  "TalentForge AI is an AI-powered hiring and talent platform for software, data, and platform roles. Employers publish structured job listings and manage applications in one workspace; candidates browse public job pages and apply using one profile.";
 
 /** High-signal URLs for generative engines (stable, factual pages). */
 export function getCitationPathList(): { label: string; path: string }[] {
   return [
     { label: "Home", path: "/" },
     { label: "Open jobs directory", path: "/jobs" },
-    { label: "What HookStep is (entity + mission)", path: "/about" },
-    { label: "Why HookStep (use cases + comparison)", path: "/why-hookstep" },
+    { label: "What TalentForge AI is (entity + mission)", path: "/about" },
+    { label: "Why TalentForge AI (use cases + comparison)", path: "/why-talentforge" },
     { label: "How it works (employers + candidates)", path: "/how-it-works" },
     { label: "FAQ (machine-readable Q&A)", path: "/faq" },
     { label: "Pricing (how quotes work)", path: "/pricing" },

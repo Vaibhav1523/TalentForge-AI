@@ -1,18 +1,15 @@
-# HookStep — Tech Talent Platform
+# TalentForge AI — Tech Talent & Hiring Platform
 
-**Live:** [hookstep.in](https://hookstep.in)
-
-A hiring platform built with Next.js: WebGL aurora background, scroll-driven tree reveal, domain tech stacks (AI/ML, Full Stack, Data Science, DevOps, QA), and interactive HookStep word.
+A modern hiring and AI interview platform built with Next.js 14, React, TypeScript, and MongoDB.
 
 ## Features
 
-- **Aurora WebGL** — Animated gradient background with scroll-linked shader
-- **Tree layer** — Fixed tree + ground mesh that appears in the story section, brightens at Message 2, exits at end trigger
-- **Hero nav** — Sticky nav with logo, links, CTA; burger menu on small screens; “Find a Job” scrolls to story
-- **Domains** — Hover/click tabs to switch tech stacks; logo wall + tile grid with CDN icons (Simple Icons)
-- **HookStep** — Large word with per-letter hover/touch glow
-- **Accessibility** — Skip link, focus-visible styles, keyboard nav on domain tabs (←/→), ARIA where needed
-- **Responsive** — Layout adapts for mobile; smooth scroll and reduced-motion respected
+- **AI-Powered Hiring & JD Generation** — Instant AI Job Description generation using Google Gemini AI
+- **Aurora WebGL & Interactive UI** — Animated gradient background with scroll-driven tree reveal and interactive UI components
+- **Domains & Tech Stacks** — Explore domain tech stacks (AI/ML, Full Stack, Data Science, DevOps, QA) with interactive filters
+- **Recruiter & Candidate Portal** — Complete management dashboard for posting jobs, managing applicants, and conducting AI-assisted evaluations
+- **NextAuth & OAuth** — Multi-provider authentication (Google OAuth, NextAuth)
+- **Responsive & Accessible** — Full keyboard navigation, dark mode styling, and mobile responsiveness
 
 ## Run locally
 
@@ -23,27 +20,9 @@ npm run dev
 
 Opens at `http://localhost:3000`.
 
-## Deploy (Google Cloud Run)
+## Tech Stack
 
-Production deploys use **GitHub Actions** (`.github/workflows/cloud-run-hookstep.yml`) and **Docker**. See workflow comments for required secrets and `scripts/` for env sync to Secret Manager (`npm run env:sync`).
-
-## API Testing (Postman)
-
-The `postman/` directory contains:
-- `HookStep-API.postman_collection.json` — the full API collection (safe to commit)
-- `HookStep-Local.postman_environment.json` — **excluded from VCS** (contains secrets)
-
-### Setting up your local sessionToken
-
-The `sessionToken` environment variable must hold a valid NextAuth session token so protected routes authenticate correctly.
-
-1. Start the dev server (`npm run dev`) and sign in at `http://localhost:3000`.
-2. Open DevTools → Application → Cookies → `next-auth.session-token`. Copy the cookie value.
-3. In Postman, open **Environments → HookStep Local** and paste the value into `sessionToken`.
-4. **Never commit** `HookStep-Local.postman_environment.json` — it is listed in `.gitignore` because it may contain secrets. Each developer maintains their own local copy.
-
-## Stack
-
-- Next.js 14 (App Router), React, TypeScript
-- WebGL (aurora), Canvas 2D (tree + ground)
-- Google Cloud Run + Artifact Registry for hosting
+- **Framework:** Next.js 14 (App Router), React 18, TypeScript
+- **Database & ORM:** MongoDB Atlas, Prisma ORM
+- **AI & Integrations:** Google Gemini AI, Resend Email API
+- **Graphics & Styling:** WebGL, Canvas 2D, Vanilla CSS

@@ -5,7 +5,7 @@ import { SITE_LOGO_SRC } from "@/lib/site-brand";
 export function SiteFooter() {
   return (
     <footer className={styles.footer} role="contentinfo">
-      <Link href="/" className={styles.brandMark} aria-label="HookStep home">
+      <Link href="/" className={styles.brandMark} aria-label="TalentForge AI home">
         <img
           className={styles.brandImg}
           src={SITE_LOGO_SRC}
@@ -26,7 +26,7 @@ export function SiteFooter() {
         <Link href="/privacy">Privacy</Link>
         <Link href="/terms">Terms</Link>
       </nav>
-      <p className={styles.note}>HookStep — hiring platform for tech and specialist roles.</p>
+      <p className={styles.note}>TalentForge AI — AI hiring platform for tech and specialist roles.</p>
     </footer>
   );
 }

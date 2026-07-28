@@ -12,20 +12,20 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "HookStep | Hire Top Tech Talent Fast",
+  title: "TalentForge AI | Hire Top Tech Talent Fast",
   description:
     "Connect with vetted AI/ML, Full Stack, Data Science, DevOps & QA professionals. Remote-ready tech experts, hired in days - not months.",
   alternates: { canonical: BASE_URL },
   openGraph: {
     type: "website",
     url: BASE_URL,
-    title: "HookStep | Hire Top Tech Talent Fast",
+    title: "TalentForge AI | Hire Top Tech Talent Fast",
     description:
       "Connect with vetted AI/ML, Full Stack, Data Science, DevOps & QA professionals. Remote-ready tech experts, hired in days - not months.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "HookStep | Hire Top Tech Talent Fast",
+    title: "TalentForge AI | Hire Top Tech Talent Fast",
     description:
       "Connect with vetted AI/ML, Full Stack, Data Science, DevOps & QA professionals. Remote-ready tech experts, hired in days - not months.",
   },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "HookStep",
+  name: "TalentForge AI",
   url: BASE_URL,
   description:
     "Tech talent platform connecting companies with vetted AI/ML, Full Stack, Data Science, DevOps & QA professionals.",
@@ -49,7 +49,7 @@ const organizationSchema = {
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "HookStep",
+  name: "TalentForge AI",
   url: BASE_URL,
   potentialAction: {
     "@type": "SearchAction",
