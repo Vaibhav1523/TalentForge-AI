@@ -1,0 +1,46 @@
+.footer {
+  margin-top: 48px;
+  padding: 28px 22px 40px;
+  border-top: 1px solid rgba(132, 206, 232, 0.15);
+  text-align: center;
+}
+
+.brandMark {
+  display: inline-flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  text-decoration: none;
+}
+
+.brandImg {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.nav a {
+  font-size: 14px;
+  color: rgba(200, 230, 245, 0.88);
+  text-decoration: none;
+}
+
+.nav a:hover {
+  color: #b8f4ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(180, 210, 225, 0.55);
+}

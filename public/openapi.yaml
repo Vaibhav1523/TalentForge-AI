@@ -1,0 +1,674 @@
+openapi: 3.0.3
+info:
+  title: HookStep / Talent Platform API
+  description: REST API for the hiring platform — jobs, applications, profile, and company dashboard.
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: Current origin (relative)
+
+tags:
+  - name: Auth
+    description: NextAuth (handled separately; session required for protected routes)
+  - name: Jobs
+    description: Public and recruiter job endpoints
+  - name: Applications
+    description: Candidate applications and company application management
+  - name: Profile
+    description: User profile and resume upload
+  - name: Company
+    description: Recruiter/company dashboard and jobs
+  - name: Utility
+    description: Health and test endpoints
+
+paths:
+  # ----- Jobs (public + recruiter) -----
+  /api/jobs:
+    get:
+      tags: [Jobs]
+      summary: List active jobs (public)
+      description: Returns ACTIVE jobs with optional server-side filtering.
+      parameters:
+        - name: employmentType
+          in: query
+          description: Comma-separated (e.g. Full-time,Contract,Internship)
+          schema: { type: string }
+        - name: category
+          in: query
+          description: e.g. Engineering
+          schema: { type: string }
+        - name: skills
+          in: query
+          description: Exact skill tag match (job.skills array contains this value)
+          schema: { type: string }
+        - name: page
+          in: query
+          description: Page number (1-based, default 1)
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: pageSize
+          in: query
+          description: Items per page (default 12, max 50)
+          schema: { type: integer, minimum: 1, maximum: 50, default: 12 }
+      responses:
+        '200':
+          description: Paginated list of active jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [jobs, pagination]
+                properties:
+                  jobs:
+                    type: array
+                    items: { $ref: '#/components/schemas/JobPublic' }
+                  pagination:
+                    type: object
+                    required: [page, pageSize, total, totalPages, hasMore]
+                    properties:
+                      page: { type: integer }
+                      pageSize: { type: integer }
+                      total: { type: integer }
+                      totalPages: { type: integer }
+                      hasMore: { type: boolean }
+    post:
+      tags: [Jobs]
+      summary: Create job (recruiter only)
+      security: [{ session: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, company, description, employmentType, category]
+              properties:
+                title: { type: string }
+                company: { type: string }
+                location: { type: string }
+                description: { type: string }
+                employmentType: { type: string }
+                category: { type: string }
+                skills: { type: array, items: { type: string } }
+                salary: { type: string }
+                currency: { type: string }
+                status: { type: string, enum: [ACTIVE, DRAFT] }
+                experienceMin: { type: integer }
+                experienceMax: { type: integer }
+                country: { type: string }
+                state: { type: string }
+                city: { type: string }
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Job' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/jobs/{id}:
+    get:
+      tags: [Jobs]
+      summary: Get job by ID (public)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Job details (safe fields only)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobPublic' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/jobs/{id}/applications:
+    get:
+      tags: [Jobs]
+      summary: List applications for a job (recruiter, own job only)
+      security: [{ session: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Paginated applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/ApplicationSummary' } }
+                  hasMore: { type: boolean }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  # ----- Company jobs -----
+  /api/company/jobs:
+    get:
+      tags: [Company]
+      summary: List company jobs (recruiter only)
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Jobs for the authenticated company
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: string }
+                    title: { type: string }
+                    location: { type: string }
+                    type: { type: string }
+                    applicants: { type: integer }
+                    status: { type: string }
+                    postedDate: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/company/jobs/{id}:
+    get:
+      tags: [Company]
+      summary: Get job by ID (recruiter, own job only)
+      security: [{ session: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Job with application count
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Job' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Company]
+      summary: Update job (recruiter, own job only)
+      security: [{ session: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                location: { type: string }
+                description: { type: string }
+                employmentType: { type: string }
+                category: { type: string }
+                skills: { type: array, items: { type: string } }
+                salary: { type: string }
+                currency: { type: string }
+                status: { type: string }
+      responses:
+        '200':
+          description: Updated job
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Job' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Company]
+      summary: Delete job (recruiter, own job only)
+      security: [{ session: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Job and its applications deleted
+          content:
+            application/json:
+              schema: { type: object, properties: { message: { type: string } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ----- Applications (candidate) -----
+  /api/applications:
+    get:
+      tags: [Applications]
+      summary: List my applications (candidate)
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Applications for the authenticated candidate
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ApplicationWithJob' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Applications]
+      summary: Submit application (candidate only)
+      security: [{ session: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [jobId, resumeUrl]
+              properties:
+                jobId: { type: string }
+                resumeUrl: { type: string, format: uri }
+                motivation: { type: string }
+                currentCTC: { type: string }
+                expectedCTC: { type: string }
+                currentCurrency: { type: string }
+                expectedCurrency: { type: string }
+                noticePeriod: { type: string }
+                city: { type: string }
+      responses:
+        '201':
+          description: Application created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Application' }
+        '400':
+          description: Missing fields, invalid URL, already applied, or job not active
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/applications/{id}:
+    patch:
+      tags: [Applications]
+      summary: Withdraw application (candidate, own only)
+      security: [{ session: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [WITHDRAWN] }
+      responses:
+        '200':
+          description: Application updated to WITHDRAWN
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Application' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ----- Company applications -----
+  /api/company/applications:
+    get:
+      tags: [Company]
+      summary: List company applications (recruiter only)
+      security: [{ session: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [Active, Inactive, Withdrawn] }
+        - name: fromDate
+          in: query
+          schema: { type: string, format: date }
+        - name: toDate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Applications for company jobs (paginated, 50)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ApplicationWithJob' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/company/applications/{id}:
+    get:
+      tags: [Company]
+      summary: Get application by ID (recruiter, own company only)
+      security: [{ session: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Application with job and candidate
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApplicationWithCandidate' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Company]
+      summary: Update application status (recruiter)
+      security: [{ session: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [APPLIED, SHORTLISTED, REJECTED, INTERVIEW, HIRED] }
+                interviewScheduledAt: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Updated application
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Application' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ----- Company dashboard -----
+  /api/company/dashboard-stats:
+    get:
+      tags: [Company]
+      summary: Dashboard stats (recruiter only)
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Stats and recent activity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats:
+                    type: object
+                    properties:
+                      activeJobs: { type: integer }
+                      totalCandidates: { type: integer }
+                      totalApplications: { type: integer }
+                      interviews: { type: integer }
+                  recentActivity:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        type: { type: string }
+                        user: { type: string }
+                        role: { type: string }
+                        time: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  # ----- Profile -----
+  /api/profile:
+    get:
+      tags: [Profile]
+      summary: Get my profile
+      security: [{ session: [] }]
+      responses:
+        '200':
+          description: Profile (no internal fields)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Profile]
+      summary: Update my profile
+      security: [{ session: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                phoneNumber: { type: string }
+                country: { type: string }
+                state: { type: string }
+                city: { type: string }
+                linkedin: { type: string, format: uri }
+                github: { type: string, format: uri }
+                twitter: { type: string, format: uri }
+                currentCTC: { type: string }
+                expectedCTC: { type: string }
+                noticePeriod: { type: string }
+                profileImageUrl: { type: string, format: uri }
+                resumeUrl: { type: string, format: uri }
+                notificationNewApplications: { type: boolean }
+                notificationInterviewUpdates: { type: boolean }
+                notificationPlatformNews: { type: boolean }
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ----- Upload resume -----
+  /api/upload/resume:
+    post:
+      tags: [Profile]
+      summary: Upload resume PDF (replaces previous)
+      security: [{ session: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF only, max 5MB
+      responses:
+        '200':
+          description: New resume URL stored; previous deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resumeUrl: { type: string, format: uri }
+        '400':
+          description: Missing file, not PDF, or too large
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ----- Utility -----
+  /api/hello:
+    get:
+      tags: [Utility]
+      summary: Hello (no auth)
+      responses:
+        '200':
+          description: OK
+  /api/test:
+    get:
+      tags: [Utility]
+      summary: Test (no auth)
+      responses:
+        '200':
+          description: OK
+
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+      description: NextAuth session cookie (sign in via the app)
+
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+      headers: {}
+    Forbidden:
+      description: Authenticated but not allowed (e.g. wrong role)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+    Job:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        company: { type: string }
+        location: { type: string }
+        description: { type: string }
+        employmentType: { type: string }
+        category: { type: string }
+        skills: { type: array, items: { type: string } }
+        salary: { type: string }
+        currency: { type: string }
+        status: { type: string }
+        experienceMin: { type: integer }
+        experienceMax: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    JobPublic:
+      type: object
+      description: Same as Job but only safe/public fields (no companyId)
+      properties:
+        id: { type: string }
+        title: { type: string }
+        company: { type: string }
+        location: { type: string }
+        description: { type: string }
+        employmentType: { type: string }
+        category: { type: string }
+        skills: { type: array, items: { type: string } }
+        salary: { type: string }
+        currency: { type: string }
+        status: { type: string }
+        experienceMin: { type: integer }
+        experienceMax: { type: integer }
+        createdAt: { type: string, format: date-time }
+    Application:
+      type: object
+      properties:
+        id: { type: string }
+        jobId: { type: string }
+        candidateId: { type: string }
+        companyId: { type: string }
+        resumeUrl: { type: string }
+        motivation: { type: string }
+        status: { type: string }
+        appliedAt: { type: string, format: date-time }
+        interviewScheduledAt: { type: string, format: date-time, nullable: true }
+    ApplicationSummary:
+      type: object
+      properties:
+        id: { type: string }
+        candidateId: { type: string }
+        status: { type: string }
+        appliedAt: { type: string, format: date-time }
+        motivation: { type: string }
+        resumeUrl: { type: string }
+        interviewScheduledAt: { type: string, format: date-time, nullable: true }
+        currentCTC: { type: string }
+        expectedCTC: { type: string }
+        noticePeriod: { type: string }
+        city: { type: string }
+    ApplicationWithJob:
+      type: object
+      description: Application with nested job (for candidate list)
+      properties:
+        id: { type: string }
+        job: { type: object, properties: { id: { type: string }, title: { type: string }, company: { type: string }, experienceMin: {}, experienceMax: {} } }
+        appliedAt: { type: string, format: date-time }
+        status: { type: string }
+    ApplicationWithCandidate:
+      type: object
+      description: Application with job and candidate (for recruiter view)
+      properties:
+        id: { type: string }
+        job: { $ref: '#/components/schemas/Job' }
+        candidate: { type: object, properties: { id: {}, name: {}, email: {}, profileImageUrl: {} } }
+        resumeUrl: { type: string }
+        motivation: { type: string }
+        status: { type: string }
+        appliedAt: { type: string, format: date-time }
+        interviewScheduledAt: { type: string, format: date-time, nullable: true }
+    Profile:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string }
+        profileImageUrl: { type: string }
+        phoneNumber: { type: string }
+        country: { type: string }
+        state: { type: string }
+        city: { type: string }
+        linkedin: { type: string }
+        github: { type: string }
+        twitter: { type: string }
+        currentCTC: { type: string }
+        expectedCTC: { type: string }
+        noticePeriod: { type: string }
+        resumeUrl: { type: string }
+        notificationNewApplications: { type: boolean }
+        notificationInterviewUpdates: { type: boolean }
+        notificationPlatformNews: { type: boolean }

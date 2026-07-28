@@ -1,0 +1,187 @@
+/* Shared marketing / legal article layout (About, FAQ, How it works, Privacy, Terms) */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hero {
+  margin-bottom: 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(132, 206, 232, 0.18);
+}
+
+.title {
+  margin: 0 0 16px;
+  font-size: clamp(30px, 3.4vw, 42px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  background: linear-gradient(120deg, #fff 0%, rgba(200, 240, 255, 0.92) 55%, rgba(120, 220, 255, 0.85) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lead {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 18px;
+  line-height: 1.65;
+  color: rgba(210, 235, 248, 0.88);
+}
+
+.meta {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(200, 230, 245, 0.72);
+}
+
+.section {
+  margin-top: 36px;
+}
+
+.section:first-of-type {
+  margin-top: 8px;
+}
+
+.sectionLabel {
+  margin: 0 0 18px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(126, 232, 255, 0.75);
+  scroll-margin-top: 120px;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  border-radius: 16px;
+  padding: 20px 22px 20px 20px;
+  border: 1px solid rgba(100, 180, 210, 0.2);
+  background: linear-gradient(145deg, rgba(12, 40, 52, 0.55), rgba(8, 32, 48, 0.35));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-left: 3px solid rgba(72, 200, 230, 0.55);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(120, 210, 235, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.cardTitle {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: rgba(248, 252, 255, 0.98);
+}
+
+.cardBody {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.68;
+  color: rgba(200, 225, 240, 0.88);
+}
+
+.body {
+  margin: 0 0 14px;
+  font-size: 16px;
+  line-height: 1.68;
+  color: rgba(200, 225, 240, 0.88);
+}
+
+.body:last-child {
+  margin-bottom: 0;
+}
+
+.body + .list,
+.body + .orderedList {
+  margin-top: 6px;
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(200, 225, 240, 0.88);
+}
+
+.list li {
+  margin-bottom: 10px;
+}
+
+.list li:last-child {
+  margin-bottom: 0;
+}
+
+.orderedList {
+  margin: 0;
+  padding-left: 1.35rem;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(200, 225, 240, 0.88);
+}
+
+.orderedList li {
+  margin-bottom: 12px;
+}
+
+.orderedList li:last-child {
+  margin-bottom: 0;
+}
+
+.card :is(.body, .cardBody, .list, .orderedList) a,
+.body a,
+.cardBody a,
+.list a,
+.orderedList a,
+.ctaBand a {
+  color: #7ee8ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+}
+
+.card :is(.body, .cardBody, .list, .orderedList) a:hover,
+.body a:hover,
+.cardBody a:hover,
+.list a:hover,
+.orderedList a:hover,
+.ctaBand a:hover {
+  color: #b8f4ff;
+}
+
+.ctaBand {
+  margin-top: 40px;
+  padding: 24px 22px;
+  border-radius: 16px;
+  text-align: center;
+  border: 1px solid rgba(132, 206, 232, 0.22);
+  background: radial-gradient(120% 80% at 50% 0%, rgba(60, 160, 190, 0.2), transparent 55%),
+    rgba(10, 36, 48, 0.5);
+}
+
+.ctaBand p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.65;
+  color: rgba(220, 240, 250, 0.9);
+}
+
+.ctaBand a {
+  color: #9cf0ff;
+  font-weight: 700;
+}

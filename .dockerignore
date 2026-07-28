@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+.npm
+.yarn
+
+# Build
+.next
+out
+dist
+build
+.turbo
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+
+# Keys
+.keys
+
+# Git and IDE
+.git
+.gitignore
+.idea
+.vscode
+*.md
+
+# Tests and misc
+coverage
+.nyc_output
+*.log
+.DS_Store
+*.tsbuildinfo
+
+# Scripts and CI config not needed in image
+scripts
+docs
+postman
+cloudbuild.yaml

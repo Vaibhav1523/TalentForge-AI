@@ -1,0 +1,20 @@
+/**
+ * Scoped typography for /ai-data-partners (fonts applied via layout + next/font variables).
+ */
+.wrap {
+  font-family: var(--font-ai-partners-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.wrap p,
+.wrap li,
+.wrap button,
+.wrap a {
+  font-family: var(--font-ai-partners-sans), system-ui, sans-serif;
+}
+
+.wrap strong {
+  font-weight: 600;
+}

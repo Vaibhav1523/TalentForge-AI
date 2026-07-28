@@ -1,0 +1,72 @@
+# Post the Vercel preview URL as a comment on every PR so you have a clear test link.
+# Runs when Vercel finishes a deployment (deployment_status from Vercel GitHub App).
+name: PR Preview URL
+
+on:
+  deployment_status:
+
+jobs:
+  comment-preview-url:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.target_url != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Get deployment info
+        id: deploy
+        run: |
+          echo "ref=${{ github.event.deployment.ref }}" >> $GITHUB_OUTPUT
+          echo "url=${{ github.event.deployment_status.target_url }}" >> $GITHUB_OUTPUT
+          echo "env=${{ github.event.deployment.environment }}" >> $GITHUB_OUTPUT
+
+      - name: Find PR and comment preview URL
+        uses: actions/github-script@v7
+        env:
+          DEPLOY_REF: ${{ steps.deploy.outputs.ref }}
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+          DEPLOY_ENV: ${{ steps.deploy.outputs.env }}
+        with:
+          script: |
+            const ref = process.env.DEPLOY_REF || '';
+            const url = process.env.DEPLOY_URL || '';
+            const env = process.env.DEPLOY_ENV || '';
+
+            // Only comment for preview deployments (not production)
+            if (env === 'Production') return;
+
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: ref
+            });
+
+            if (pulls.length === 0) return;
+
+            const body = `## Preview ready\n\n**Live URL:** ${url}\n\nUse this link to test the PR before merging.`;
+            const marker = '<!-- vercel-preview-url -->';
+
+            for (const pr of pulls) {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number
+              });
+              const existing = comments.find(c => c.body && c.body.includes(marker) && c.user.type === 'Bot');
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body: body + '\n' + marker
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body: body + '\n' + marker
+                });
+              }
+            }

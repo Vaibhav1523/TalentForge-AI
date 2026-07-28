@@ -1,0 +1,294 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  RECRUITER
+  CANDIDATE
+}
+
+enum OrganizationMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+/// Shared employer account: one slug, many recruiter users (members).
+model Organization {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  slug      String   @unique
+  logoUrl   String?
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members       User[]               @relation("OrganizationMembers")
+  jobs          Job[]
+  invites       OrganizationInvite[]
+  applications  Application[]
+}
+
+model OrganizationInvite {
+  id              String                 @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId  String                 @db.ObjectId
+  organization    Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email           String
+  token           String                 @unique
+  role            OrganizationMemberRole @default(MEMBER)
+  invitedByUserId String                 @db.ObjectId
+  invitedByUser   User                   @relation("UserInvites", fields: [invitedByUserId], references: [id], onDelete: Restrict)
+  expiresAt       DateTime
+  createdAt       DateTime               @default(now())
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([email])
+}
+
+model User {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  email           String   @unique
+
+  name            String?
+  profileImageUrl String?
+  userRole        UserRole @default(CANDIDATE)
+  roleSelectedAt  DateTime?  // When set, user can no longer change role via updateUserRole
+  phoneNumber     String?
+  country         String?
+  state           String?
+  city            String?
+  linkedin        String?
+  github          String?
+  twitter         String?
+  currentCTC      String?
+  expectedCTC     String?
+  skills          String[]  // Candidate skill tags (e.g. ["React", "Node.js"])
+  noticePeriod    String?
+  resumeUrl        String?   // Single CV per user (GCS URL); replaced on new upload
+  companyLogoUrl   String?   // Company logo uploaded via /api/upload/company-logo
+  companyName      String?   // Set during recruiter onboarding
+  companyWebsite   String?   // Set during recruiter onboarding
+  /// Public URL segment; mirrored from Organization.slug when part of an org (not globally unique across users).
+  companySlug      String?
+  hiresFor         String[]  // Roles they typically hire for
+  onboardingComplete Boolean @default(false) // Recruiter has completed post-signup onboarding
+  isAdmin            Boolean @default(false) // Platform admin access (managed by super admin)
+  /// DB-granted super admin (same powers as SUPER_ADMIN_EMAIL for admin UI + /c/ access). Env bootstrap still supported.
+  isSuperAdmin       Boolean @default(false)
+  notificationNewApplications Boolean? @default(true)
+  notificationInterviewUpdates Boolean? @default(true)
+  notificationPlatformNews   Boolean? @default(true)
+  organizationId   String?   @db.ObjectId
+  organization     Organization? @relation("OrganizationMembers", fields: [organizationId], references: [id], onDelete: SetNull)
+  organizationRole OrganizationMemberRole?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  jobs            Job[]              @relation("CompanyJobs")
+  applications    Application[]      @relation("CandidateApplications")
+  sentInvites     OrganizationInvite[] @relation("UserInvites")
+
+  @@index([organizationId])
+  @@index([companySlug])
+}
+
+// ─── Lead: captured on form submit ────────────────────────────────────────────
+model Lead {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  company   String
+  phone     String?
+  roles     String?
+  createdAt DateTime  @default(now())
+
+  booking   Booking[] // empty until they confirm a call; may have multiple after rebooking
+
+  @@index([email])
+}
+
+// ─── Booking: created via Cal.com webhook on confirmed booking ─────────────────
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Booking {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  leadId         String        @db.ObjectId
+  lead           Lead          @relation(fields: [leadId], references: [id])
+  scheduledAt    DateTime
+  calBookingUid  String        @unique
+  status         BookingStatus @default(CONFIRMED)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([leadId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  REJECTED
+  INTERVIEW
+  HIRED
+  WITHDRAWN
+}
+
+enum JobStatus {
+  DRAFT      // Not visible to candidates
+  ACTIVE     // Accepting applications
+  CLOSED     // No longer accepting applications
+  ARCHIVED   // Old/deleted jobs
+}
+
+model Job {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  company         String
+  location        String
+  description     String
+  employmentType  String        // e.g., FULL_TIME, REMOTE
+  category        String
+  skills          String[]
+  salary          String?       // e.g. "150,000"
+  currency        String?       // e.g. "USD"
+  experienceMin   Int?          // Min experience in years
+  experienceMax   Int?          // Max experience in years
+  
+  // 🔒 SECURITY: Poster (recruiter user) — audit trail; org access uses organizationId
+  companyId       String        @db.ObjectId
+  companyUser     User          @relation("CompanyJobs", fields: [companyId], references: [id])
+
+  organizationId  String?       @db.ObjectId
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  
+  // 🔒 SECURITY: Job visibility control
+  status          JobStatus     @default(DRAFT)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  applications    Application[]
+  
+  // Performance indexes
+  @@index([companyId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([companyId, status])
+}
+
+model TeamMember {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  role        String
+  bio         String
+  avatarUrl   String?
+  iconName    String   @default("Brain")
+  tilt        String   @default("tilt-center")
+  featured    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model Application {
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  jobId        String            @db.ObjectId
+  job          Job               @relation(fields: [jobId], references: [id])
+  candidateId  String            @db.ObjectId  // User id of the candidate (NextAuth)
+  candidate    User              @relation("CandidateApplications", fields: [candidateId], references: [id])
+  
+  // 🔒 SECURITY: Direct company link for efficient filtering & isolation
+  companyId    String            @db.ObjectId // Poster / legacy org key (user id)
+  organizationId String?         @db.ObjectId // Shared org scope (preferred for multi-recruiter)
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  resumeUrl    String
+  motivation   String?
+  currentCTC   String?
+  expectedCTC  String?
+  currentCurrency  String?
+  expectedCurrency String?
+  noticePeriod String?
+  city         String?
+  status       ApplicationStatus @default(APPLIED)
+  appliedAt    DateTime          @default(now())
+  interviewScheduledAt DateTime?     // Dedicated field for scheduled interviews
+  
+  aiCalls         AICall[]       @relation("ApplicationAICalls")
+
+  // Performance indexes
+  @@index([companyId])
+  @@index([organizationId])
+  @@index([candidateId])
+  @@index([jobId])
+  @@index([companyId, status])
+  @@unique([jobId, candidateId])
+}
+
+// ─── AI Calling: screening questions per job ─────────────────────────────────
+model InterviewQuestion {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  jobId     String   @db.ObjectId
+  question  String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobId])
+}
+
+// ─── AI Calling: outbound AI screening calls ─────────────────────────────────
+enum AICallStatus {
+  QUEUED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  NO_ANSWER
+}
+
+model AICall {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  jobId           String       @db.ObjectId
+  applicationId   String       @db.ObjectId
+  candidateId     String       @db.ObjectId
+  companyId       String       @db.ObjectId
+
+  application     Application  @relation("ApplicationAICalls", fields: [applicationId], references: [id])
+
+  phoneNumber     String
+  providerCallId  String?
+  status          AICallStatus @default(QUEUED)
+
+  transcript      String?
+  summary         String?
+  recordingUrl    String?
+  callDuration    Float?
+
+  questions       String[]
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  completedAt     DateTime?
+
+  @@index([jobId])
+  @@index([companyId])
+  @@index([candidateId])
+  @@index([applicationId])
+  @@index([providerCallId])
+}

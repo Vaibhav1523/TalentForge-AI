@@ -1,0 +1,94 @@
+# Cloud Build config with Docker layer caching via Artifact Registry.
+# Cuts build time from ~5 min to ~1-2 min on subsequent deploys by reusing
+# cached node_modules and Next.js build layers.
+#
+# Variables (override via --substitutions on the CLI or set defaults here):
+#   _REGION        - GCP region (default: us-central1)
+#   _SERVICE_NAME  - Cloud Run service name (default: hookstep)
+#   _REPO          - Artifact Registry repo (default: cloud-run-source-deploy)
+
+substitutions:
+  _REGION: us-central1
+  _SERVICE_NAME: hookstep
+  _REPO: cloud-run-source-deploy
+
+options:
+  # E2 machines have more CPU/RAM than the default N1, cutting npm ci + next build time.
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # Pull the previous image to use as a cache source (fails silently on first run).
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker pull us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest || true
+        docker pull us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:deps || true
+
+  # Build the deps layer separately so it gets its own cache tag.
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --target=deps
+      - --cache-from=us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:deps
+      - --tag=us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:deps
+      - .
+
+  # Build the full image, reusing the deps layer from cache.
+  # $BUILD_ID is expanded at runtime inside the step (not at submission time).
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker build \
+          --cache-from us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:deps \
+          --cache-from us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest \
+          --tag us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest \
+          --tag us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$BUILD_ID \
+          .
+
+  # Push all tags so future builds can use :latest and :deps as cache.
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}
+
+  # Deploy the pre-built image to Cloud Run (no rebuild needed).
+  # --no-allow-unauthenticated avoids a permission error when the Cloud Build SA
+  # lacks roles/run.admin for IAM policy binding; public access is set below.
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest
+      - --region=${_REGION}
+      - --platform=managed
+      - --no-allow-unauthenticated
+      - --port=8080
+      - --memory=512Mi
+      - --min-instances=0
+      - --max-instances=10
+
+  # Grant public (unauthenticated) access as a separate step so a permission
+  # warning doesn't fail the entire build.
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        gcloud beta run services add-iam-policy-binding \
+          --region=${_REGION} \
+          --member=allUsers \
+          --role=roles/run.invoker \
+          ${_SERVICE_NAME} || echo "[WARN] Could not set public IAM policy (may need roles/run.admin). Service is deployed but may require auth."
+
+# Only list statically-known tags here; $BUILD_ID tag is pushed in the step above.
+images:
+  - us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest
+  - us-central1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:deps

@@ -1,0 +1,24 @@
+# Match .dockerignore so Cloud Build upload is small and fast
+git
+.git
+.gitignore
+node_modules
+.next
+out
+dist
+build
+.turbo
+.env
+.env.*
+.keys
+*.log
+.DS_Store
+coverage
+.nyc_output
+.turbo
+*.tsbuildinfo
+.idea
+.vscode
+scripts
+docs
+postman

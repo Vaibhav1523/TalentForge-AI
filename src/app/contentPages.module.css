@@ -1,0 +1,141 @@
+/* Shared readable layout for About, Privacy, Terms, How it works */
+.page {
+  position: relative;
+  min-height: 100vh;
+  color: rgba(237, 247, 255, 0.94);
+  overflow-x: hidden;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.58));
+  /*
+   * HeroNav is position:fixed — it does not reserve height in the flow.
+   * Padding on <main> pushes in-flow content (.wrap) below the floating bar.
+   * (top: 18px + bar ~64–88px + gap — keep generous for small laptops.)
+   */
+  /* Nav: top 18px + inner ~52–88px + safe gap — must clear z-index:100 fixed bar */
+  padding-top: clamp(140px, 18vh, 220px);
+}
+
+.homeSmoke {
+  position: fixed;
+  inset: -18%;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 42% at 50% 22%, rgba(120, 240, 255, 0.22) 0%, rgba(0, 150, 170, 0.09) 44%, rgba(0, 0, 0, 0) 76%),
+    radial-gradient(46% 40% at 28% 44%, rgba(0, 255, 230, 0.11) 0%, rgba(0, 0, 0, 0) 72%),
+    radial-gradient(46% 40% at 72% 44%, rgba(65, 180, 255, 0.1) 0%, rgba(0, 0, 0, 0) 72%);
+  filter: blur(58px) saturate(1.1);
+  opacity: 0.55;
+}
+
+.wrap {
+  position: relative;
+  z-index: 4;
+  max-width: 720px;
+  margin: 0 auto;
+  /* top | horizontal | bottom — was 20px top + huge bottom by mistake */
+  padding: clamp(12px, 2vw, 20px) 22px clamp(48px, 10vh, 100px);
+}
+
+.article {
+  border-radius: 20px;
+  padding: clamp(48px, 6vw, 64px) clamp(28px, 4vw, 36px) clamp(56px, 7vw, 72px);
+  border: 1px solid rgba(132, 206, 232, 0.22);
+  background: linear-gradient(132deg, rgba(18, 47, 64, 0.5), rgba(14, 61, 74, 0.4));
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.article h1 {
+  margin: 0 0 20px;
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  scroll-margin-top: 120px;
+}
+
+.lead {
+  margin: 0 0 28px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: rgba(220, 240, 252, 0.9);
+}
+
+.lastUpdated {
+  margin: 0 0 28px;
+  font-size: 14px;
+  color: rgba(200, 230, 245, 0.72);
+}
+
+.article h2 {
+  margin: 28px 0 12px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.article p {
+  margin: 0 0 14px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: rgba(237, 247, 255, 0.88);
+}
+
+.article ul {
+  margin: 0 0 16px;
+  padding-left: 1.25rem;
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(237, 247, 255, 0.88);
+}
+
+.article li {
+  margin-bottom: 8px;
+}
+
+.article a {
+  color: #7ee8ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.article a:hover {
+  color: #b8f4ff;
+}
+
+.article a:focus {
+  outline: none;
+}
+
+.article a:focus-visible {
+  color: #b8f4ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(126, 232, 255, 0.45);
+  border-radius: 2px;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 28px;
+  font-size: 15px;
+  color: rgba(200, 230, 245, 0.85);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.back:focus {
+  outline: none;
+}
+
+.back:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+  border-radius: 2px;
+}

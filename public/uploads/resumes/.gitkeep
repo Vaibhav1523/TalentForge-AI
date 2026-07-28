@@ -1,0 +1,4 @@
+# Resume uploads are stored here (local dev)
+# Add this line to your .gitignore to avoid committing actual resumes:
+# public/uploads/resumes/*
+# !public/uploads/resumes/.gitkeep

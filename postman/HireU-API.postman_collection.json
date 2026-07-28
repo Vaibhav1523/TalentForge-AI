@@ -1,0 +1,539 @@
+{
+  "info": {
+    "name": "HookStep / Talent Platform API",
+    "description": "REST API for jobs, applications, profile, and company dashboard. Uses NextAuth session cookie for protected routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "sessionToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "applicationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "calWebhookSecret",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resumeUrl",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "Utility",
+      "item": [
+        {
+          "name": "Hello",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/hello",
+            "description": "Health check, no auth required."
+          }
+        },
+        {
+          "name": "Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/test",
+            "description": "Test route, no auth required."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "List jobs (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs?employmentType=&category=&skills=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"],
+              "query": [
+                { "key": "employmentType", "value": "", "description": "e.g. Full-time,Contract" },
+                { "key": "category", "value": "", "description": "e.g. Engineering" },
+                { "key": "skills", "value": "", "description": "Substring match" }
+              ]
+            },
+            "description": "Returns ACTIVE jobs. No auth required."
+          }
+        },
+        {
+          "name": "Get job by ID (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/jobs/{{jobId}}",
+            "description": "Get job details. Use jobId from list or set variable."
+          }
+        },
+        {
+          "name": "Create job (recruiter)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Engineer\",\n  \"company\": \"Acme Inc\",\n  \"location\": \"Remote\",\n  \"description\": \"We are looking for...\",\n  \"employmentType\": \"Full-time\",\n  \"category\": \"Engineering\",\n  \"skills\": [\"React\", \"Node.js\"],\n  \"salary\": \"120000\",\n  \"currency\": \"USD\",\n  \"status\": \"ACTIVE\",\n  \"experienceMin\": 3,\n  \"experienceMax\": 6\n}"
+            },
+            "url": "{{baseUrl}}/api/jobs",
+            "description": "Recruiter only. Requires session."
+          }
+        },
+        {
+          "name": "List applications for job (recruiter)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/jobs/{{jobId}}/applications",
+            "description": "Recruiter, own job only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Company",
+      "item": [
+        {
+          "name": "List company jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/company/jobs",
+            "description": "Recruiter only."
+          }
+        },
+        {
+          "name": "Get company job by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/company/jobs/{{jobId}}",
+            "description": "Recruiter, own job only."
+          }
+        },
+        {
+          "name": "Update job",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Engineer (Updated)\",\n  \"location\": \"Remote\",\n  \"description\": \"Updated description\",\n  \"employmentType\": \"Full-time\",\n  \"category\": \"Engineering\",\n  \"skills\": [\"React\", \"Node.js\", \"TypeScript\"],\n  \"salary\": \"130000\",\n  \"currency\": \"USD\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "{{baseUrl}}/api/company/jobs/{{jobId}}",
+            "description": "Recruiter, own job only."
+          }
+        },
+        {
+          "name": "Delete job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/company/jobs/{{jobId}}",
+            "description": "Recruiter, own job only. Deletes job and its applications."
+          }
+        },
+        {
+          "name": "List company applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/company/applications?status=&fromDate=&toDate=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "company", "applications"],
+              "query": [
+                { "key": "status", "value": "", "description": "Active | Inactive | Withdrawn" },
+                { "key": "fromDate", "value": "", "description": "YYYY-MM-DD" },
+                { "key": "toDate", "value": "", "description": "YYYY-MM-DD" }
+              ]
+            },
+            "description": "Recruiter only. Paginated (50)."
+          }
+        },
+        {
+          "name": "Get application by ID (company)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/company/applications/{{applicationId}}",
+            "description": "Recruiter, own company only. Returns application with job and candidate."
+          }
+        },
+        {
+          "name": "Update application status (company)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SHORTLISTED\",\n  \"interviewScheduledAt\": \"2025-03-01T14:00:00.000Z\"\n}"
+            },
+            "url": "{{baseUrl}}/api/company/applications/{{applicationId}}",
+            "description": "Recruiter. status: APPLIED | SHORTLISTED | REJECTED | INTERVIEW | HIRED."
+          }
+        },
+        {
+          "name": "Dashboard stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/company/dashboard-stats",
+            "description": "Recruiter only. Stats and recent activity."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applications (candidate)",
+      "item": [
+        {
+          "name": "List my applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/applications",
+            "description": "Candidate only. Lists applications with job info."
+          }
+        },
+        {
+          "name": "Submit application",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": \"{{jobId}}\",\n  \"resumeUrl\": \"https://example.com/resume.pdf\",\n  \"motivation\": \"I am excited to apply...\",\n  \"currentCTC\": \"100000\",\n  \"expectedCTC\": \"120000\",\n  \"currentCurrency\": \"USD\",\n  \"expectedCurrency\": \"USD\",\n  \"noticePeriod\": \"2 weeks\",\n  \"city\": \"New York\"\n}"
+            },
+            "url": "{{baseUrl}}/api/applications",
+            "description": "Candidate only. jobId and resumeUrl required."
+          }
+        },
+        {
+          "name": "Withdraw application",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"WITHDRAWN\"\n}"
+            },
+            "url": "{{baseUrl}}/api/applications/{{applicationId}}",
+            "description": "Candidate, own application only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get my profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/profile",
+            "description": "Authenticated user profile."
+          }
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"phoneNumber\": \"+1234567890\",\n  \"country\": \"USA\",\n  \"state\": \"NY\",\n  \"city\": \"New York\",\n  \"linkedin\": \"https://linkedin.com/in/johndoe\",\n  \"github\": \"https://github.com/johndoe\",\n  \"currentCTC\": \"100000\",\n  \"expectedCTC\": \"120000\",\n  \"noticePeriod\": \"2 weeks\",\n  \"profileImageUrl\": \"https://example.com/avatar.jpg\",\n  \"resumeUrl\": \"https://example.com/resume.pdf\",\n  \"notificationNewApplications\": true,\n  \"notificationInterviewUpdates\": true,\n  \"notificationPlatformNews\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/profile",
+            "description": "Partial update supported."
+          }
+        },
+        {
+          "name": "Upload resume",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "PDF only, max 5MB."
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/upload/resume",
+            "description": "Multipart form. Replaces previous resume. PDF only, max 5MB. Session token stored in environment variable {{sessionToken}}."
+          }
+        },
+        {
+          "name": "View resume (stream PDF)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/resume/view?url={{resumeUrl}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resume", "view"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "{{resumeUrl}}",
+                  "description": "Encoded GCS object name, e.g. resumes%2F<userId>-<ts>-<filename>.pdf"
+                },
+                {
+                  "key": "download",
+                  "value": "1",
+                  "description": "Pass download=1 to force-download instead of inline view",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Streams a resume PDF from GCS via server credentials. Auth required. Set {{resumeUrl}} to the encoded GCS object path for the resume you want to view (e.g. resumes%2F<userId>-<timestamp>-example.pdf)."
+          }
+        },
+        {
+          "name": "Upload profile image",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPG, PNG or WebP. Max 2 MB. Replaces OAuth avatar in profileImageUrl."
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/upload/profile-image",
+            "description": "Upload a custom profile photo to GCS (hookstep-logos-staging / profile-images/). Overwrites the OAuth avatar saved on first login. Returns profileImageUrl (/api/images/profile-images/...). Auth required."
+          }
+        },
+        {
+          "name": "Upload company logo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPG, PNG, SVG or WebP. Max 800 KB."
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/upload/company-logo",
+            "description": "Upload a company logo to GCS (hookstep-logos-staging bucket). Returns logoUrl (/api/images/logos/...) and objectName. Auth required."
+          }
+        },
+        {
+          "name": "Upload team photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Cookie", "value": "next-auth.session-token={{sessionToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "JPG, PNG or WebP. Max 2 MB."
+                },
+                {
+                  "key": "name",
+                  "value": "Jane Smith",
+                  "type": "text",
+                  "description": "Team member name (optional, stored as GCS metadata)"
+                },
+                {
+                  "key": "role",
+                  "value": "Lead Engineer",
+                  "type": "text",
+                  "description": "Team member role (optional)"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/upload/team-photo",
+            "description": "Upload a team member photo to GCS (hookstep-team-photos-staging bucket). Returns photoUrl (/api/images/team/...) and objectName. Auth required."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Calcom Webhooks",
+      "item": [
+        {
+          "name": "BOOKING_CREATED",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-cal-signature-256", "value": "<computed-hmac-sha256>", "description": "Must be HMAC-SHA256(rawBody, calWebhookSecret). Cal.com computes this automatically. For manual testing, run: crypto.createHmac('sha256', pm.environment.get('calWebhookSecret')).update(pm.request.body.raw).digest('hex') in a pre-request script and set this header to the result." }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"triggerEvent\": \"BOOKING_CREATED\",\n  \"payload\": {\n    \"uid\": \"test-booking-uid-123\",\n    \"startTime\": \"2026-03-05T10:00:00.000Z\",\n    \"status\": \"ACCEPTED\",\n    \"attendees\": [\n      {\n        \"name\": \"John Doe\",\n        \"email\": \"john@acme.com\",\n        \"timeZone\": \"Asia/Kolkata\"\n      }\n    ],\n    \"responses\": {}\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/webhooks/cal",
+            "description": "Simulates a Cal.com BOOKING_CREATED webhook. Signature header must match CAL_WEBHOOK_SECRET (or any value works in dev when secret is unset). ⚠️ CAUTION: CAL_WEBHOOK_SECRET must be configured in all non-development environments. Ensure webhook signing is verified in production — leaving CAL_WEBHOOK_SECRET unset in production will cause the server to reject all incoming Cal.com webhook requests."
+          }
+        },
+        {
+          "name": "BOOKING_CANCELLED",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-cal-signature-256", "value": "<computed-hmac-sha256>", "description": "Must be HMAC-SHA256(rawBody, calWebhookSecret). Cal.com computes this automatically. For manual testing, run: crypto.createHmac('sha256', pm.environment.get('calWebhookSecret')).update(pm.request.body.raw).digest('hex') in a pre-request script and set this header to the result." }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"triggerEvent\": \"BOOKING_CANCELLED\",\n  \"payload\": {\n    \"uid\": \"test-booking-uid-123\",\n    \"startTime\": \"2026-03-05T10:00:00.000Z\",\n    \"status\": \"CANCELLED\",\n    \"attendees\": [\n      {\n        \"name\": \"John Doe\",\n        \"email\": \"john@acme.com\"\n      }\n    ]\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/webhooks/cal",
+            "description": "Simulates a Cal.com BOOKING_CANCELLED webhook. Sets matching booking status to CANCELLED."
+          }
+        },
+        {
+          "name": "BOOKING_RESCHEDULED",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-cal-signature-256", "value": "<computed-hmac-sha256>", "description": "Must be HMAC-SHA256(rawBody, calWebhookSecret). Cal.com computes this automatically. For manual testing, run: crypto.createHmac('sha256', pm.environment.get('calWebhookSecret')).update(pm.request.body.raw).digest('hex') in a pre-request script and set this header to the result." }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"triggerEvent\": \"BOOKING_RESCHEDULED\",\n  \"payload\": {\n    \"uid\": \"test-booking-uid-123\",\n    \"startTime\": \"2026-03-10T14:00:00.000Z\",\n    \"status\": \"ACCEPTED\",\n    \"attendees\": [\n      {\n        \"name\": \"John Doe\",\n        \"email\": \"john@acme.com\"\n      }\n    ]\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/webhooks/cal",
+            "description": "Simulates a Cal.com BOOKING_RESCHEDULED webhook. Updates scheduledAt on the matching booking."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Images (public proxy)",
+      "item": [
+        {
+          "name": "Get company logo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/logos/:filename",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "logos", ":filename"],
+              "variable": [
+                { "key": "filename", "value": "test-upload.png", "description": "Object filename returned from upload API" }
+              ]
+            },
+            "description": "Public — no auth needed. Streams logo from GCS hookstep-logos-staging via Next.js proxy. Cache-Control: public, max-age=31536000."
+          }
+        },
+        {
+          "name": "Get team photo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/images/team/:filename",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "images", "team", ":filename"],
+              "variable": [
+                { "key": "filename", "value": "test-photo.png", "description": "Object filename returned from upload API" }
+              ]
+            },
+            "description": "Public — no auth needed. Streams team photo from GCS hookstep-team-photos-staging via Next.js proxy. Cache-Control: public, max-age=31536000."
+          }
+        }
+      ]
+    }
+  ]
+}
